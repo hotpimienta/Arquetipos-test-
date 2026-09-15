@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Arquetipos y Caminos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fondo oscuro elegante y reconfortante para la vista */
+        body {
+            position: relative;
+            background-color: #1b1d22; /* Un tono casi negro muy sofisticado */
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('fondo-arquetipos.jpg');
+            background-repeat: repeat;
+            background-size: 350px;
+            opacity: 0.60; /* Muy sutil para que luzca limpio y elegante */
+            z-index: -1;
+        }
+
+        /* Animaciones fluidas */
+        .slide-in-right { animation: slideInRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        .slide-in-left { animation: slideInLeft 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        .fade-out { animation: fadeOut 0.2s ease-out forwards; }
+
+        @keyframes slideInRight {
+            from { transform: translateX(40px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideInLeft {
+            from { transform: translateX(-40px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+            background-color: #ffffff;
+            color: #0c0d0f;
+            border-color: #ffffff;
+        }
+        .option-btn.selected {
+            background-color: #ffffff;
+            color: #0c0d0f;
+            border-color: #ffffff;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body class="text-zinc-100 font-sans antialiased min-h-screen flex items-center justify-center p-4">
+
+    <!-- Tarjeta Principal con Estética Minimalista y Blanca -->
+    <div class="max-w-3xl w-full bg-zinc-900/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-zinc-800">
+        
+        <!-- Cabecera Limpia (Tonalidad Blanca y Gris Claro) -->
+        <div class="bg-gradient-to-r from-zinc-800 to-zinc-900 p-6 md:p-8 text-white text-center border-b border-zinc-800">
+            <h1 class="text-2xl md:text-3xl font-light tracking-wide mb-4 text-zinc-100">Test de Arquetipos y Caminos</h1>
+            <div class="bg-zinc-800/60 rounded-2xl p-4 text-sm md:text-base text-zinc-300 text-left backdrop-blur-sm border border-zinc-700/50">
+                <p class="mb-3 font-normal text-zinc-200">Indique qué tanto considera que cada afirmación lo describe marcando el valor respectivo al lado de cada oración, de la siguiente forma:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs md:text-sm font-light text-zinc-400">
+                    <div><span class="font-semibold text-white">1</span> - No me describe</div>
+                    <div><span class="font-semibold text-white">2</span> - Rara vez me describe</div>
+                    <div><span class="font-semibold text-white">3</span> - A veces me describe</div>
+                    <div><span class="font-semibold text-white">4</span> - Con frecuencia me describe</div>
+                    <div><span class="font-semibold text-white">5</span> - Casi siempre me describe</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de Inicio -->
+        <div id="startContainer" class="p-6 md:p-12 flex flex-col items-center justify-center min-h-[350px]">
+            <h2 class="text-2xl font-light text-zinc-200 mb-3 text-center">Bienvenido</h2>
+            <p class="text-zinc-400 mb-8 text-center text-sm">Para comenzar y personalizar tus resultados, por favor ingresa tu nombre:</p>
+            <input type="text" id="userNameInput" placeholder="Tu nombre..." class="w-full max-w-sm px-5 py-3.5 bg-zinc-950 border border-zinc-700 rounded-2xl focus:outline-none focus:border-white mb-8 text-center text-lg text-zinc-100 placeholder-zinc-600 transition-colors shadow-inner">
+            <button onclick="comenzarTest()" class="bg-white hover:bg-zinc-200 text-zinc-950 font-medium py-3.5 px-9 rounded-full transition-all transform hover:scale-105 shadow-lg tracking-wide">
+                Iniciar el Test
+            </button>
+        </div>
+
+        <!-- Contenedor del Cuestionario -->
+        <div id="quizContainer" class="hidden p-6 md:p-10 relative overflow-hidden min-h-[350px] flex flex-col justify-center">
+            
+            <div class="mb-8">
+                <div class="flex justify-between text-xs font-medium text-zinc-400 mb-2 tracking-wider">
+                    <span id="progressText">Pregunta 1 de 48</span>
+                    <span id="progressPercentage">0%</span>
+                </div>
+                <div class="w-full bg-zinc-950 rounded-full h-1.5 overflow-hidden border border-zinc-800">
+                    <div id="progressBar" class="bg-white h-full rounded-full transition-all duration-300 shadow-[0_0_12px_rgba(255,255,255,0.4)]" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div id="questionCard" class="slide-in-right">
+                <h2 id="questionText" class="text-xl md:text-2xl font-light text-zinc-100 mb-8 text-center min-h-[64px] leading-relaxed"></h2>
+                
+                <div class="grid grid-cols-5 gap-2 md:gap-4 max-w-xl mx-auto mb-8">
+                    <button class="option-btn border border-zinc-700 bg-zinc-950/60 rounded-2xl py-3.5 md:py-4 text-lg font-medium text-zinc-300 focus:outline-none shadow-sm" onclick="selectOption(1)">1</button>
+                    <button class="option-btn border border-zinc-700 bg-zinc-950/60 rounded-2xl py-3.5 md:py-4 text-lg font-medium text-zinc-300 focus:outline-none shadow-sm" onclick="selectOption(2)">2</button>
+                    <button class="option-btn border border-zinc-700 bg-zinc-950/60 rounded-2xl py-3.5 md:py-4 text-lg font-medium text-zinc-300 focus:outline-none shadow-sm" onclick="selectOption(3)">3</button>
+                    <button class="option-btn border border-zinc-700 bg-zinc-950/60 rounded-2xl py-3.5 md:py-4 text-lg font-medium text-zinc-300 focus:outline-none shadow-sm" onclick="selectOption(4)">4</button>
+                    <button class="option-btn border border-zinc-700 bg-zinc-950/60 rounded-2xl py-3.5 md:py-4 text-lg font-medium text-zinc-300 focus:outline-none shadow-sm" onclick="selectOption(5)">5</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-4">
+                <button id="btnBack" onclick="goBack()" class="hidden text-zinc-400 hover:text-white font-light text-sm flex items-center transition-colors">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Volver a la anterior
+                </button>
+                
+                <button onclick="reiniciarTest()" class="text-zinc-500 hover:text-zinc-300 font-light text-sm flex items-center transition-colors ml-auto">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Reiniciar Test
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenedor de Resultados -->
+        <div id="resultsContainer" class="hidden p-6 md:p-10 bg-zinc-900">
+            <h2 class="text-3xl font-light text-zinc-100 mb-8 text-center tracking-wide">Resultados de <span id="displayUserName" class="text-white font-medium"></span></h2>
+            
+            <div class="mb-10">
+                <h3 class="text-lg font-medium text-zinc-300 mb-4 border-b border-zinc-800 pb-2 tracking-wide">Tus Arquetipos Dominantes</h3>
+                <div id="archetypesScores" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-medium text-zinc-300 mb-4 border-b border-zinc-800 pb-2 tracking-wide">Tus Caminos</h3>
+                <div id="pathsScores" class="grid grid-cols-1 md:grid-cols-3 gap-5 text-center"></div>
+            </div>
+
+            <div class="mt-10 text-center">
+                 <button onclick="reiniciarTest()" class="bg-white hover:bg-zinc-200 text-zinc-950 font-medium py-3.5 px-9 rounded-full transition-all transform hover:scale-105 shadow-lg tracking-wide">
+                    Realizar de nuevo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Caminos -->
+    <div id="pathModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-300" id="modalContentBox">
+            
+            <div class="bg-zinc-800 p-6 text-white sticky top-0 flex justify-between items-center z-10 shadow-md border-b border-zinc-700">
+                <h2 id="modalTitle" class="text-xl font-light tracking-wider text-zinc-100">Camino</h2>
+                <button onclick="closeModal()" class="text-zinc-400 hover:text-white transition-colors focus:outline-none">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="p-6 md:p-8">
+                <div class="mb-8">
+                    <h3 class="text-base font-medium text-zinc-200 mb-4 border-b border-zinc-800 pb-2 tracking-wide">Arquetipos del Camino</h3>
+                    <ul id="modalArchetypes" class="space-y-3"></ul>
+                </div>
+
+                <div>
+                    <h3 class="text-base font-medium text-zinc-200 mb-4 border-b border-zinc-800 pb-2 tracking-wide">Aportes</h3>
+                    <ul id="modalAportes" class="list-disc list-inside space-y-2 text-zinc-400 text-sm font-light pl-2"></ul>
+                </div>
+            </div>
+            
+            <div class="bg-zinc-950 p-6 text-center border-t border-zinc-800">
+                <button onclick="closeModal()" class="bg-zinc-800 text-zinc-200 hover:bg-white hover:text-zinc-950 font-medium py-3 px-8 rounded-full transition-all shadow-sm">
+                    Volver a mis resultados
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            "Me gusta que los demás disfruten cuando están conmigo.",
+            "Soy capaz de verle el lado humorístico a todo.",
+            "Me siento más víctima que protagonista de lo que acontece en mi vida.",
+            "Me distingo por la claridad y rapidez para definir mis metas personales.",
+            "Me gusta redefinir y ordenar continuamente mi espacio personal (habitación, casa, espacio de trabajo).",
+            "He invertido tiempo y recursos desarrollando un intenso trabajo interior lo cual me permite influir sobre personas y grupos.",
+            "Me gusta citar personajes y autores.",
+            "Encuentro con facilidad la forma de superar cualquier obstáculo.",
+            "Siempre ando buscando medios para conocerme y descubrir mis potencialidades.",
+            "Me es fácil perdonar de corazón.",
+            "Estoy convencido de que el caos y la incertidumbre son tierra fértil para la innovación.",
+            "Encuentro muy provechosas prácticas como la meditación, la relajación y formas similares para 'estar en forma'.",
+            "Considero que en últimas la vida es un juego.",
+            "El cuidado de mi mismo (a) es una prioridad para mí.",
+            "Me es difícil decir no a las demandas de los demás.",
+            "Considero, junto con Rousseau, que 'el hombre es esencialmente bueno y la sociedad lo corrompe'.",
+            "Planeo mis vacaciones y aprecio el descanso.",
+            "Me motivan más las actividades relativas al 'investigar para abrir caminos' que para lograr resultados específicos.",
+            "Me gusta comenzar proyectos nuevos, pues me atrae el cambio.",
+            "Me gusta dar clase, dictar conferencias, compartir mis conocimientos.",
+            "Condeno tajantemente el egoísmo.",
+            "Comunico mis deseos y necesidades con facilidad a los demás.",
+            "Soy consciente de cómo mi presencia influye en los demás y sé cómo aprovecharlo.",
+            "Consigo con facilidad que los demás se adhieran a mis sueños.",
+            "Soy el abanderado de grandes cambios en mi organización o lugar de trabajo.",
+            "Me considero un eterno aprendiz aún en áreas en las que soy muy competente.",
+            "Me atraen profundamente las bibliotecas, los museos, internet y los sitios donde se guarda conocimiento.",
+            "Lo que me propongo, lo logro.",
+            "Me atrae el concepto de la nada.",
+            "Pienso que la mejor forma de aprender es 'tirándose al agua' sin mayor preparación.",
+            "No me tiembla la mano al confrontar a las personas para realizar cambios.",
+            "Los demás me consideran una persona innovadora en la búsqueda y el diseño de soluciones.",
+            "Enfrento las crisis y los problemas con optimismo y confianza.",
+            "Cuando entro en un restaurante elijo rápidamente mis preferencias.",
+            "Considero que este mundo es un 'lugar bueno' y me siento agradecido por ello.",
+            "Soy capaz de destruir con el ánimo de construir.",
+            "En ocasiones me siento asaltado en mi buena fe.",
+            "Cuando estoy deprimido (a) como o compro más de lo normal.",
+            "Me siento mejor dando que recibiendo.",
+            "Tengo claro cuál es mi principal talento y le he dedicado un tiempo considerable a cultivarlo.",
+            "En momentos de incertidumbre me asaltan el temor y la duda sobre mí mismo.",
+            "Siento que la gente no debería sufrir para aprender.",
+            "Me siento libre de 'cantarle la tabla' al que sea, independientemente de su rol o posición.",
+            "Me siento cómodo(a) y especialmente competente para generar resultados atendiendo simultáneamente varios frentes.",
+            "Sé escuchar y acepto argumentos diferentes cuando los demás tienen la razón.",
+            "Considero que los conflictos deben enfrentarse oportunamente, por eso no los evado.",
+            "Me es difícil 'echar raíces' y me considero un viajero nato.",
+            "Las dificultades que he debido afrontar me han convertido en una persona sensible y considerada."
+        ];
+
+        const mapArchetypes = {
+            Inocente: [16, 30, 35, 37], Huerfano: [3, 38, 41, 48], Guerrero: [4, 22, 28, 34],
+            Bienhechor: [15, 21, 39, 42], Buscador: [9, 18, 26, 47], Amante: [1, 10, 14, 17],
+            Destructor: [5, 19, 29, 36], Creador: [11, 24, 32, 40], Mago: [6, 12, 23, 33],
+            Gobernante: [25, 31, 44, 46], Sabio: [7, 20, 27, 45], Bufon: [2, 8, 13, 43]
+        };
+
+        const datosCaminos = {
+            "Conocimiento": {
+                arquetipos: [
+                    { nombre: "INOCENTE", desc: "Asombrarse, descubrir y disfrutar con los ojos incautos del desprevenido." },
+                    { nombre: "BUSCADOR", desc: "Deseo de pasar los límites, de encontrar cosas nuevas y mejores opciones." },
+                    { nombre: "SABIO", desc: "Deseo de aprender, de comprender procesos, de entender contextos y entornos, de explicar y sentir los fundamentos de las cosas y la vida." },
+                    { nombre: "MAGO", desc: "Hacer alquimia para encontrar la forma de convertir las piedras en oro. Pensar en conjuros y hechizos para transformar el mundo." }
+                ],
+                aportes: [
+                    "Cuidar y disfrutar el proceso.",
+                    "Revisar y actualizar fuentes de información.",
+                    "Capacidad de análisis y síntesis.",
+                    "Evaluación flexible de ideas y alternativas.",
+                    "Mirada integral de los asuntos a tratar.",
+                    "Documentación y sistematización de la experiencia.",
+                    "Capacidad de aprender del error.",
+                    "Organizar conversaciones inteligentes sobre asuntos prioritarios."
+                ]
+            },
+            "Poder": {
+                arquetipos: [
+                    { nombre: "GUERRERO", desc: "Asumir la vida como un campo de batalla en el cual debo ganar territorio y proteger mi bandera. Ganar la batalla es el objetivo y la estrategia una forma de vida" },
+                    { nombre: "DESTRUCTOR", desc: "Deseo de romper paradigmas, de desobedecer parámetros rígidos y cuestionar los sistemas incuestionables" },
+                    { nombre: "CREADOR", desc: "Deseo transformar el mundo, modificarlo, convertir arcilla en maravillosas piezas de alfareria. Crear para transformar es mi impulso vital" },
+                    { nombre: "GOBERNANTE", desc: "Soy el gestor de mi entorno. Deseo tener el control de los elemento de mi contexto y organizar los entornos de otros." }
+                ],
+                aportes: [
+                    "Mantener el foco en mente.",
+                    "Ponerle \"polo a tierra a los proyectos\".",
+                    "Generar indicadores que aseguren el impacto esperado.",
+                    "Compromiso con la acción.",
+                    "Fortaleza para enfrentar obstáculos.",
+                    "Capacidad de tomar decisiones difíciles.",
+                    "Disciplina y persistencia para lograr metas.",
+                    "Manejo de aliados y estrategias que aseguren logro."
+                ]
+            },
+            "Amor": {
+                arquetipos: [
+                    { nombre: "BIENHECHOR", desc: "Entenderme como parte de un entorno social que puedo transformar y mejorar. Sentirme un ser social." },
+                    { nombre: "AMANTE", desc: "Tener sensibilidad visceral frente a los temas que me apasionan." },
+                    { nombre: "BUFÓN", desc: "Vivir la vida al límite, disfrutando el momento, el aquí y el ahora, entendiéndola como un pasaje temporal que hay que disfrutar al máximo." },
+                    { nombre: "HUÉRFANO", desc: "No dependo de nadie, labro sólo mi camino y mi supervivencia de manera creativa. No requiero afecto ni aprobación frente a lo que hago" }
+                ],
+                aportes: [
+                    "Mantener viva la confianza a partir de una comunicación abierta, franca y oportuna.",
+                    "Disfrutar el estar juntos, apasionarse con los retos y celebrar los resultados.",
+                    "Cuidar la energía del grupo, reconocer logros individuales y de equipo.",
+                    "Canalizar el manejo efectivo de los conflictos con una mediación equitativa.",
+                    "Velar porque se den soluciones \"gano-ganas\".",
+                    "Propiciar una pertenencia apasionada.",
+                    "Entusiasmo y pasión por los proyectos.",
+                    "Empatía con el cliente: tener siempre en mente las necesidades y el punto de vista del cliente."
+                ]
+            }
+        };
+
+        let userName = localStorage.getItem('test_userName') || '';
+        let currentIndex = parseInt(localStorage.getItem('test_currentIndex')) || 0;
+        let guardadas = localStorage.getItem('test_answers');
+        const answers = guardadas ? JSON.parse(guardadas) : new Array(questions.length).fill(null);
+        let testCompletado = localStorage.getItem('test_completado') === 'true';
+        
+        const questionText = document.getElementById('questionText');
+        const questionCard = document.getElementById('questionCard');
+        const btnBack = document.getElementById('btnBack');
+        const progressText = document.getElementById('progressText');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const optionButtons = document.querySelectorAll('.option-btn');
+
+        function guardarProgreso() {
+            localStorage.setItem('test_userName', userName);
+            localStorage.setItem('test_currentIndex', currentIndex);
+            localStorage.setItem('test_answers', JSON.stringify(answers));
+        }
+
+        function comenzarTest() {
+            const input = document.getElementById('userNameInput').value.trim();
+            if (!input) {
+                alert("Por favor, ingresa tu nombre para comenzar.");
+                return;
+            }
+            userName = input;
+            guardarProgreso();
+            
+            document.getElementById('startContainer').classList.add('hidden');
+            document.getElementById('quizContainer').classList.remove('hidden');
+            updateUI();
+        }
+
+        function updateUI(direction = 'right') {
+            questionCard.classList.remove('slide-in-right', 'slide-in-left');
+            questionCard.classList.add('fade-out');
+            
+            setTimeout(() => {
+                questionText.textContent = `${currentIndex + 1}. ${questions[currentIndex]}`;
+                const progress = Math.round(((currentIndex) / questions.length) * 100);
+                progressText.textContent = `Pregunta ${currentIndex + 1} de ${questions.length}`;
+                progressBar.style.width = `${progress}%`;
+                progressPercentage.textContent = `${progress}%`;
+                
+                if(currentIndex > 0) {
+                    btnBack.classList.remove('hidden');
+                } else {
+                    btnBack.classList.add('hidden');
+                }
+
+                optionButtons.forEach((btn, index) => {
+                    btn.classList.remove('selected');
+                    if(answers[currentIndex] === index + 1) {
+                        btn.classList.add('selected');
+                    }
+                });
+
+                questionCard.classList.remove('fade-out');
+                questionCard.classList.add(direction === 'right' ? 'slide-in-right' : 'slide-in-left');
+            }, 200);
+        }
+
+        function selectOption(value) {
+            answers[currentIndex] = value;
+            guardarProgreso();
+            
+            optionButtons.forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+
+            setTimeout(() => {
+                if(currentIndex < questions.length - 1) {
+                    currentIndex++;
+                    updateUI('right');
+                } else {
+                    progressBar.style.width = '100%';
+                    progressPercentage.textContent = '100%';
+                    setTimeout(calculateResults, 300);
+                }
+            }, 350);
+        }
+
+        function goBack() {
+            if(currentIndex > 0) {
+                currentIndex--;
+                guardarProgreso();
+                updateUI('left');
+            }
+        }
+
+        function openModal(pathName) {
+            const modal = document.getElementById('pathModal');
+            const modalBox = document.getElementById('modalContentBox');
+            
+            document.getElementById('modalTitle').textContent = `Camino del ${pathName}`;
+            const data = datosCaminos[pathName] || { arquetipos: [], aportes: [] };
+            
+            const archHtml = data.arquetipos.map(arq => `
+                <li class="bg-zinc-950/60 p-4 rounded-2xl border-l-2 border-white shadow-sm">
+                    <span class="font-medium text-white block mb-1 tracking-wide">${arq.nombre}</span>
+                    <span class="text-xs text-zinc-400 font-light leading-relaxed">${arq.desc}</span>
+                </li>
+            `).join('');
+            document.getElementById('modalArchetypes').innerHTML = archHtml;
+
+            const aportesHtml = data.aportes.map(aporte => `
+                <li class="text-xs text-zinc-300 leading-relaxed">${aporte}</li>
+            `).join('');
+            document.getElementById('modalAportes').innerHTML = aportesHtml;
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalBox.classList.remove('scale-95');
+                modalBox.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('pathModal');
+            const modalBox = document.getElementById('modalContentBox');
+            
+            modal.classList.add('opacity-0');
+            modalBox.classList.remove('scale-100');
+            modalBox.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function calculateResults() {
+            localStorage.setItem('test_completado', 'true');
+            guardarProgreso();
+
+            document.getElementById('quizContainer').classList.add('hidden');
+            document.getElementById('resultsContainer').classList.remove('hidden');
+            document.getElementById('displayUserName').textContent = userName;
+
+            let scores = {};
+            for (const [archetype, qNumbers] of Object.entries(mapArchetypes)) {
+                scores[archetype] = qNumbers.reduce((sum, qNum) => {
+                    return sum + (answers[qNum - 1] || 0); 
+                }, 0);
+            }
+
+            const paths = {
+                Conocimiento: scores.Inocente + scores.Buscador + scores.Sabio + scores.Mago,
+                Poder: scores.Guerrero + scores.Destructor + scores.Creador + scores.Gobernante,
+                Amor: scores.Huerfano + scores.Bienhechor + scores.Amante + scores.Bufon
+            };
+
+            const archContainer = document.getElementById('archetypesScores');
+            archContainer.innerHTML = Object.entries(scores)
+                .sort((a, b) => b[1] - a[1]) 
+                .map(([name, score]) => `
+                <div class="bg-zinc-950/80 p-4 rounded-2xl shadow-sm flex justify-between items-center border border-zinc-800">
+                    <span class="font-light text-zinc-300 text-sm">${name}</span>
+                    <span class="bg-white text-zinc-950 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold shadow-sm">${score}</span>
+                </div>
+            `).join('');
+
+            const pathContainer = document.getElementById('pathsScores');
+            pathContainer.innerHTML = Object.entries(paths)
+                .map(([name, score]) => `
+                <div onclick="openModal('${name}')" class="bg-zinc-950/80 p-6 rounded-3xl shadow-md border-t-2 border-white transform transition hover:-translate-y-1 cursor-pointer hover:shadow-xl group border border-zinc-800">
+                    <h4 class="font-light text-zinc-500 uppercase text-[10px] tracking-widest mb-1 group-hover:text-zinc-300 transition-colors">Camino del</h4>
+                    <h5 class="font-normal text-lg text-white mb-3 tracking-wide">${name}</h5>
+                    <p class="text-3xl font-light text-zinc-200">${score}</p>
+                </div>
+            `).join('');
+        }
+
+        function reiniciarTest() {
+            localStorage.removeItem('test_userName');
+            localStorage.removeItem('test_currentIndex');
+            localStorage.removeItem('test_answers');
+            localStorage.removeItem('test_completado');
+            
+            userName = '';
+            currentIndex = 0;
+            answers.fill(null);
+            
+            document.getElementById('resultsContainer').classList.add('hidden');
+            document.getElementById('quizContainer').classList.add('hidden');
+            
+            const startContainer = document.getElementById('startContainer');
+            startContainer.classList.remove('hidden');
+            document.getElementById('userNameInput').value = '';
+        }
+
+        if (testCompletado) {
+            document.getElementById('startContainer').classList.add('hidden');
+            calculateResults();
+        } else if (userName !== '') {
+            document.getElementById('startContainer').classList.add('hidden');
+            document.getElementById('quizContainer').classList.remove('hidden');
+            updateUI();
+        }
+    </script>
+</body>
+</html>
